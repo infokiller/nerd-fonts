@@ -68,7 +68,7 @@ class font_patcher:
             self.extension = '.' + self.args.extension
         
         self.glyph_size = defaultdict(
-          lambda: 1.18,
+          lambda: 1.2,
           dict({})
         )
 
@@ -618,8 +618,6 @@ class font_patcher:
             sym = self.sourceFont[codepoint]
             if codepoint != 0x2588:
               sym.transform(mat)
-            sym.left_side_bearing = 0
-            sym.right_side_bearing = 0
             sym.width = self.font_dim['width']
 
     def copy_glyphs(self, sourceFontStart, sourceFontEnd, symbolFont, symbolFontStart, symbolFontEnd, exactEncoding, scaleGlyph, setName, attributes):
@@ -780,7 +778,8 @@ class font_patcher:
                   x_align_distance = self.font_dim['xmin'] - sym_dim['xmin']
                   if sym_attr['align'] == 'c':
                       # Center align
-                      x_align_distance += 0.5 * (self.font_dim['width'] - sym_dim['width'])
+                      by = 3 if sym_attr['stretch'] == 'pa' else 2
+                      x_align_distance += 1. / by * (self.font_dim['width'] - sym_dim['width'])
                   elif sym_attr['align'] == 'r':
                       # Right align
                       x_align_distance += self.font_dim['width'] - sym_dim['width']
@@ -794,10 +793,6 @@ class font_patcher:
 
               align_matrix = psMat.translate(x_align_distance, y_align_distance)
               self.sourceFont.transform(align_matrix)
-
-            # Ensure after horizontal adjustments and centering that the glyph
-            # does not overlap the bearings (edges)
-            self.remove_glyph_neg_bearings(self.sourceFont[currentSourceFontGlyph])
 
             # Needed for setting 'advance width' on each glyph so they do not overlap,
             # also ensures the font is considered monospaced on Windows by setting the

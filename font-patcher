@@ -615,7 +615,10 @@ class font_patcher:
           mat = psMat.compose(scale, translate)
 
           for codepoint in range(0x2500, 0x25A0):
-            sym = self.sourceFont[codepoint]
+            try:
+              sym = self.sourceFont[codepoint]
+            except TypeError:
+              continue
             if codepoint != 0x2588:
               sym.transform(mat)
             sym.width = self.font_dim['width']

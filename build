@@ -1,0 +1,10 @@
+#!/usr/bin/env zsh
+
+emulate -L zsh
+
+mkdir -p out || exit
+
+local font
+for font in src/unpatched-fonts/Meslo/S/*/*.ttf; do
+  fontforge -script font-patcher $font -s -c -ext ttf -out ./out || exit
+done

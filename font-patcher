@@ -539,12 +539,12 @@ class font_patcher:
           sym = self.sourceFont[0x2588]
           sym_dim = get_glyph_dimensions(sym)
           scale_ratio_x = 1.06 * self.font_dim['width'] / sym_dim['width']
-          scale_ratio_y = 1.06 * self.font_dim['height'] / sym_dim['height']
+          scale_ratio_y = 1.04 * self.font_dim['height'] / sym_dim['height']
           scale = psMat.scale(scale_ratio_x, scale_ratio_y)
           sym.transform(scale)
           sym_dim = get_glyph_dimensions(sym)
           x_align_distance = self.font_dim['xmin'] - sym_dim['xmin'] - 0.03 * self.font_dim['width']
-          y_align_distance = self.font_dim['ymin'] - sym_dim['ymin'] - 0.03 * self.font_dim['height']
+          y_align_distance = self.font_dim['ymin'] - sym_dim['ymin'] - 0.02 * self.font_dim['height']
           translate = psMat.translate(x_align_distance, y_align_distance)
           sym.transform(translate)
           mat = psMat.compose(scale, translate)
@@ -697,7 +697,7 @@ class font_patcher:
               if scale_ratio_x != 1 or scale_ratio_y != 1:
                   if 'overlap' in sym_attr['params']:
                       scale_ratio_x *= 1 + sym_attr['params']['overlap']
-                      scale_ratio_y *= 1 + 2 * sym_attr['params']['overlap']
+                      scale_ratio_y *= 1 + 1.5 * sym_attr['params']['overlap']
                   self.sourceFont.transform(psMat.scale(scale_ratio_x, scale_ratio_y))
 
               # Use the dimensions from the newly pasted and stretched glyph

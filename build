@@ -1,10 +1,34 @@
-#!/usr/bin/env zsh
+#!/bin/sh
+#
+# Usage example: ./build 'Meslo/S/*'
 
-emulate -L zsh
+set -ue
 
-mkdir -p out || exit
+self_dir=$(dirname "$0")
+self_dir=$(readlink -f "$self_dir")
+source_font_pattern=${1:-"**"}
 
-local font
-for font in src/unpatched-fonts/Meslo/S/*/*.ttf; do
-  fontforge -script font-patcher $font -s -c -ext ttf -out ./out || exit
+if ! command -v docker >/dev/null 2>&1; then
+  >&2 echo '[error] docker not found; please install and retry'
+  exit 1
+fi
+
+build="$(cat <<\END
+shopt -s failglob
+apt-get update
+apt-get upgrade -y
+apt-get install -y python2.7 python-pip fontforge
+pip install configparser
+cd /nerd-fonts
+for font in src/unpatched-fonts/$NF_SOURCE_FONT_PATTERN/*.ttf; do
+  fontforge -script font-patcher "$font" -q -s -c -ext ttf -out ./out
 done
+END
+)"
+
+mkdir -p -- "$self_dir"/out
+docker run                                         \
+  -v "$self_dir":/nerd-fonts                       \
+  -e NF_SOURCE_FONT_PATTERN="$source_font_pattern" \
+  --rm                                             \
+  -- debian:buster bash -uexc "$build"

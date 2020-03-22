@@ -222,65 +222,12 @@ class font_patcher:
 
 
     def setup_font_names(self):
-        verboseAdditionalFontNameSuffix = " " + projectNameSingular
-        if self.args.windows:  # attempt to shorten here on the additional name BEFORE trimming later
-            additionalFontNameSuffix = " " + projectNameAbbreviation
-        else:
-            additionalFontNameSuffix = verboseAdditionalFontNameSuffix
-        if not self.args.complete:
-            # NOTE not all symbol fonts have appended their suffix here
-            if self.args.fontawesome:
-                additionalFontNameSuffix += " A"
-                verboseAdditionalFontNameSuffix += " Plus Font Awesome"
-            if self.args.fontawesomeextension:
-                additionalFontNameSuffix += " AE"
-                verboseAdditionalFontNameSuffix += " Plus Font Awesome Extension"
-            if self.args.octicons:
-                additionalFontNameSuffix += " O"
-                verboseAdditionalFontNameSuffix += " Plus Octicons"
-            if self.args.powersymbols:
-                additionalFontNameSuffix += " PS"
-                verboseAdditionalFontNameSuffix += " Plus Power Symbols"
-            if self.args.pomicons:
-                additionalFontNameSuffix += " P"
-                verboseAdditionalFontNameSuffix += " Plus Pomicons"
-            if self.args.fontlinux:
-                additionalFontNameSuffix += " L"
-                verboseAdditionalFontNameSuffix += " Plus Font Logos (Font Linux)"
-            if self.args.material:
-                additionalFontNameSuffix += " MDI"
-                verboseAdditionalFontNameSuffix += " Plus Material Design Icons"
-            if self.args.weather:
-                additionalFontNameSuffix += " WEA"
-                verboseAdditionalFontNameSuffix += " Plus Weather Icons"
-
-        # if all source glyphs included simplify the name
-        else:
-            additionalFontNameSuffix = " " + projectNameSingular + " Complete"
-            verboseAdditionalFontNameSuffix = " " + projectNameSingular + " Complete"
-
-        # add mono signifier to end of name
-        if self.args.single:
-            additionalFontNameSuffix += " M"
-            verboseAdditionalFontNameSuffix += " Mono"
-
         # basically split the font name around the dash "-" to get the fontname and the style (e.g. Bold)
         # this does not seem very reliable so only use the style here as a fallback if the font does not
         # have an internal style defined (in sfnt_names)
         # using '([^-]*?)' to get the item before the first dash "-"
         # using '([^-]*(?!.*-))' to get the item after the last dash "-"
-        fontname, fallbackStyle = re.match("^([^-]*).*?([^-]*(?!.*-))$", self.sourceFont.fontname).groups()
-
-        # dont trust 'sourceFont.familyname'
-        familyname = fontname
-
-        # fullname (filename) can always use long/verbose font name, even in windows
-        if self.sourceFont.fullname != None:
-            fullname = self.sourceFont.fullname + verboseAdditionalFontNameSuffix
-        else:
-            fullname = self.sourceFont.cidfontname + verboseAdditionalFontNameSuffix
-
-        fontname = fontname + additionalFontNameSuffix.replace(" ", "")
+        basename, fallbackStyle = re.match("^([^-]*).*?([^-]*(?!.*-))$", self.sourceFont.fontname).groups()
 
         # let us try to get the 'style' from the font info in sfnt_names and fallback to the
         # parse fontname if it fails:
@@ -300,25 +247,13 @@ class font_patcher:
         # some fonts have inaccurate 'SubFamily', if it is Regular let us trust the filename more:
         if subFamily == "Regular":
             subFamily = fallbackStyle
-        if self.args.windows:
-            maxFamilyLength = 31
-            maxFontLength = maxFamilyLength - len('-' + subFamily)
-            familyname += " " + projectNameAbbreviation
-            fullname += " Windows Compatible"
 
-            # now make sure less than 32 characters name length
-            if len(fontname) > maxFontLength:
-                fontname = fontname[:maxFontLength]
-            if len(familyname) > maxFamilyLength:
-                familyname = familyname[:maxFamilyLength]
-        else:
-            familyname += " " + projectNameSingular
-            if self.args.single:
-                familyname += " Mono"
-
+        # dont trust 'sourceFont.familyname'
+        familyname = basename + " " + projectNameAbbreviation
         # Don't truncate the subfamily to keep fontname unique.  MacOS treats fonts with
         # the same name as the same font, even if subFamily is different.
-        fontname += '-' + subFamily
+        fullname = familyname + " " + subFamily
+        fontname = fullname.replace(" ", "-")
 
         # rename font
         #
@@ -363,7 +298,7 @@ class font_patcher:
         }
 
         projectInfo = (
-            "Patched with '" + projectName + " Patcher' (https://github.com/ryanoasis/nerd-fonts)\n\n"
+            "Patched with forked '" + projectName + " Patcher' (https://github.com/romkatv/nerd-fonts)\n\n"
             "* Website: https://www.nerdfonts.com\n"
             "* Version: " + version + "\n"
             "* Development Website: https://github.com/ryanoasis/nerd-fonts\n"
